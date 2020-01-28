@@ -128,7 +128,7 @@ public class ItemsListChunk : MonoBehaviour
         }
 
         //Product Name
-        Text text = itemGO.GetComponentInChildren<Text>();
+        Text text = itemGO.transform.Find("Product_Txt").GetComponent<Text>();
         text.text = item.productName;
 
         UpdateItemsPosition();
@@ -180,16 +180,16 @@ public class ItemsListChunk : MonoBehaviour
         int c = 0;
         foreach (ItemList i in itemsList)
         {
-            RectTransform itemBG_rect = i.itemGO.transform.Find("Background").GetComponent<RectTransform>();
+            RectTransform itemBG_rect = i.itemGO.transform.GetComponent<RectTransform>();
 
-            Vector3 newPos = new Vector3(i.itemGO.transform.parent.position.x + itemBG_rect.rect.width + Screen.width * 0.1f,
-           i.itemGO.transform.parent.position.y - Screen.height * 0.08f - separation - itemBG_rect.rect.height * 2.0f * c, // initial pos - margin - separation - height of the prefab * nº prefabs
+            RectTransform viewportRect = listContent.transform.parent.transform.GetComponent<RectTransform>();
+
+            Vector3 newPos = new Vector3(listContent.transform.position.x+ viewportRect.rect.size.x * 0.1f,
+           listContent.transform.position.y - viewportRect.rect.size.y * 0.12f - separation - itemBG_rect.rect.height * 2.0f * c, // initial pos - margin - separation - height of the prefab * nº prefabs
            0); 
-
+                
             i.itemGO.transform.position = newPos;
-
-            RectTransform rect = i.itemGO.GetComponent<RectTransform>();
-            itemBG_rect.sizeDelta = new Vector2(Screen.width * 0.4f, itemBG_rect.sizeDelta.y);
+            itemBG_rect.sizeDelta = new Vector2(viewportRect.rect.size.x * 0.9f, itemBG_rect.sizeDelta.y);
             c++;
         }
 

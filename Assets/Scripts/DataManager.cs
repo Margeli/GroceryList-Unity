@@ -53,6 +53,7 @@ public class DataManager : MonoBehaviour {
     {
         
         File.Delete(fileName);
+        File.Delete(fileName + ".meta");
 
        // StreamWriter writer = new StreamWriter(fileName);
        // writer.Close();
