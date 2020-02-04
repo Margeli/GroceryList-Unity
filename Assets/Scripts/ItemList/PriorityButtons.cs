@@ -14,7 +14,7 @@ public class PriorityButtons : MonoBehaviour
     public Color medCol;
     Button high;
     public  Color highCol;
-    private void Start()
+    public void InitButtons()
     {
         selBG = transform.GetChild(0).gameObject;
         low = transform.GetChild(1).gameObject.GetComponent<Button>();

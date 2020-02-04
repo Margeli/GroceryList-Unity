@@ -7,13 +7,26 @@ public class ItemsListChunk : MonoBehaviour
 {
     public GameObject listContent;
     public GameObject itemsListPrefab;
+    public PriorityButtons priorityButtons;
     public DataManager dataManager;
+    public Dropdown SMDropdown;
+    public Dropdown TagDropdown;
     public float separation = 20.0f;
 
     List<ItemList> itemsList;
+    List<string> SMList;
+    List<string> TagsList;
+
+    public enum OrderBy
+    {
+        Default,
+        Priority,
+        Tag,
+        SM
+    }
+    public OrderBy order = OrderBy.Default;
 
     public Text debug;
-    private PriorityButtons priorityButt;
 
     string dataFilePath;
 
@@ -21,7 +34,6 @@ public class ItemsListChunk : MonoBehaviour
 
     public class ItemList
     {
-
         public enum Priority
         {
             Low,
@@ -39,7 +51,6 @@ public class ItemsListChunk : MonoBehaviour
         public void CleanUp()
         {
             Destroy(itemGO);
-
         }
     }
 
@@ -48,6 +59,11 @@ public class ItemsListChunk : MonoBehaviour
     private void Start()
     {
         itemsList = new List<ItemList>();
+        SMList = new List<string>();
+        TagsList = new List<string>();
+
+        priorityButtons.InitButtons();
+
         if (Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer)
         {
             dataFilePath = "Assets/Saves/Data.txt";
@@ -58,7 +74,6 @@ public class ItemsListChunk : MonoBehaviour
         }
         needToImport = true;
 
-        priorityButt = FindObjectOfType<PriorityButtons>();
     }
     private void Update()
     {
@@ -73,9 +88,10 @@ public class ItemsListChunk : MonoBehaviour
     //------------------------------UI
     public void ButtonAddPressed()
     {
-        InputField inputText = GameObject.Find("ItemNameInput").GetComponent<InputField>();
-        AddItem(priorityButt.currPriority, inputText.text);
-        inputText.text = "";
+        InputField itemInput = GameObject.Find("ItemName_Input").GetComponent<InputField>();
+        
+        AddItem(priorityButtons.currPriority, itemInput.text, SMDropdown.options[SMDropdown.value].text, TagDropdown.options[TagDropdown.value].text);
+        itemInput.text = "";
         ExportData();
         
     }
@@ -83,11 +99,26 @@ public class ItemsListChunk : MonoBehaviour
     public void ButtonClearPressed()
     {
         ClearItemList();
+        ClearSMList();
+        ClearTagList();
+        
         dataManager.ResetDataFile(dataFilePath);
         UpdateItemsPosition();
         ImportData();
     }
 
+    public void ButtonAddSMPressed()
+    {
+
+        InputField i = SMDropdown.transform.Find("AddSM_Panel").Find("SM_Input").GetComponent<InputField>();
+        AddSupermarket(i.text);
+    }
+
+    public void ButtonAddTagPressed()
+    {
+        InputField i = TagDropdown.transform.Find("AddTag_Panel").Find("Tag_Input").GetComponent<InputField>();
+        AddTag(i.text);
+    }
     //-----------------------------ITEMS LIST MANAGEMENT
     public void RemoveItem(GameObject goItem)
     {
@@ -102,10 +133,9 @@ public class ItemsListChunk : MonoBehaviour
             }
         }
     }
-    void AddItem(ItemList.Priority priority, string txt)
+    void AddItem(ItemList.Priority priority, string product, string SM, string tag)
     {
-
-        ItemList item = new ItemList() { productName = txt };
+        ItemList item = new ItemList() { productName = product };
         itemsList.Add(item);
 
         GameObject itemGO = Instantiate(itemsListPrefab, listContent.transform.position, listContent.transform.localRotation, listContent.transform);
@@ -117,64 +147,36 @@ public class ItemsListChunk : MonoBehaviour
         switch (item.priority)
         {
             case ItemList.Priority.Low:
-                priorityImg.color = priorityButt.lowCol;
+                priorityImg.color = priorityButtons.lowCol;
                 break;
             case ItemList.Priority.Med:
-                priorityImg.color = priorityButt.medCol;
+                priorityImg.color = priorityButtons.medCol;
                 break;
             case ItemList.Priority.High:
-                priorityImg.color = priorityButt.highCol;
+                priorityImg.color = priorityButtons.highCol;
                 break;
         }
+
+        //Supermarket
+        Text SMText = itemGO.transform.Find("SM_Txt").GetComponent<Text>();
+        SMText.text = SM;
+        item.supermarket = SM; 
+        AddSupermarket(SM);
+
+        //Tag
+
+        Text TagText = itemGO.transform.Find("Tag_Txt").GetComponent<Text>();
+        TagText.text = tag;
+        item.tag = tag;
+        AddTag(tag);
+
 
         //Product Name
         Text text = itemGO.transform.Find("Product_Txt").GetComponent<Text>();
         text.text = item.productName;
 
         UpdateItemsPosition();
-
-
     }
-    void ClearItemList()
-    {
-        foreach (ItemList i in itemsList)
-        {
-            i.CleanUp();
-        }
-        itemsList.Clear();
-    }
-
-    public void OrderByPriority()
-    {
-        List<ItemList> aux = new List<ItemList>();
-
-        foreach (ItemList i in itemsList)
-        {
-            if (i.priority == ItemList.Priority.High)
-            {
-                aux.Add(i);
-            }
-        }
-        foreach (ItemList i in itemsList)
-        {
-            if (i.priority == ItemList.Priority.Med)
-            {
-                aux.Add(i);
-            }
-        }
-        foreach (ItemList i in itemsList)
-        {
-            if (i.priority == ItemList.Priority.Low)
-            {
-                aux.Add(i);
-            }
-        }
-        itemsList = aux;
-        UpdateItemsPosition();
-    }
-
-    void OrderBySuperMarket() { }
-
     void UpdateItemsPosition()
     {
         int c = 0;
@@ -184,41 +186,162 @@ public class ItemsListChunk : MonoBehaviour
 
             RectTransform viewportRect = listContent.transform.parent.transform.GetComponent<RectTransform>();
 
-            Vector3 newPos = new Vector3(listContent.transform.position.x+ viewportRect.rect.size.x * 0.1f,
+            Vector3 newPos = new Vector3(listContent.transform.position.x + viewportRect.rect.size.x * 0.1f,
            listContent.transform.position.y - viewportRect.rect.size.y * 0.12f - separation - itemBG_rect.rect.height * 2.0f * c, // initial pos - margin - separation - height of the prefab * nº prefabs
-           0); 
-                
+           0);
+
             i.itemGO.transform.position = newPos;
             itemBG_rect.sizeDelta = new Vector2(viewportRect.rect.size.x * 0.9f, itemBG_rect.sizeDelta.y);
             c++;
         }
+    }
+    //-------------CLEAR
+    void ClearItemList()
+    {
+        foreach (ItemList i in itemsList)
+        {
+            i.CleanUp();
+        }
+        itemsList.Clear();
+    }
+    void ClearSMList()
+    {
+        SMList.Clear();
+        SMDropdown.ClearOptions();
+        AddSupermarket("");
+    }
+    void ClearTagList()
+    {
+        TagsList.Clear();
+        TagDropdown.ClearOptions();
+        AddTag("");
+    }
+    
 
+    //-------------ORDER BY
+
+    public void OrderByPriority()
+    {
+        List<ItemList> aux = new List<ItemList>();
+        int enumCount = System.Enum.GetValues(typeof(ItemList.Priority)).Length;
+        for(int j = enumCount-1; j>=0; j--)
+        {
+            foreach (ItemList i in itemsList)
+            {
+                if (i.priority == (ItemList.Priority)j)
+                {
+                    aux.Add(i);
+                }
+            }
+        }
+        itemsList = aux;
+        order = OrderBy.Priority;
+        UpdateItemsPosition();
     }
 
+    public void OrderByTag()
+    {
+        List<ItemList> aux = new List<ItemList>();
+        foreach (string s in TagsList)
+        {
+            foreach(ItemList i in itemsList)
+            {
+                if(i.tag == s)
+                {
+                    aux.Add(i);
+                }
+            }
+        }
+        itemsList = aux;
+        order = OrderBy.Tag;
+        UpdateItemsPosition();
+    }
 
+    public void OrderBySM()
+    {
+        List<ItemList> aux = new List<ItemList>();
+        foreach (string s in SMList)
+        {
+            foreach (ItemList i in itemsList)
+            {
+                if (i.supermarket == s)
+                {
+                    aux.Add(i);
+                }
+            }
+        }
+        itemsList = aux;
+        order = OrderBy.SM;
+        UpdateItemsPosition();
+    }
 
+    //-------------------------SUPERMARKET DROPDOWN
+
+    void AddSupermarket(string name)
+    {
+        foreach (string s in SMList)
+        {
+            if (name == s)//name already exist
+            {
+                debug.text = "SM already exists";
+                return;
+            }
+        }
+        SMList.Add(name);
+        List<string> l = new List<string>();
+        l.Add(name);
+        SMDropdown.AddOptions(l);
+    }
+    //-----------------------------TAG
+
+    void AddTag(string tag)
+    {
+        foreach (string s in TagsList)
+        {
+            if (tag == s)//name already exist
+            {
+                debug.text = "tag already exists";
+                return;
+            }
+        }
+        TagsList.Add(tag); 
+        List<string> l = new List<string>();
+        l.Add(tag);
+        TagDropdown.AddOptions(l);
+    }
     //-------------------------------DATA MANAGEMENT
     public void ImportData()
     {
-        debug.text = "clearing";
-        ClearItemList();
+        ClearItemList(); 
+        ClearSMList();
+        ClearTagList();
+
         debug.text = "tryToImport";
 
-        List<ItemList> nwList = new List<ItemList>();
-        dataManager.DeserializeItems(dataFilePath, nwList);
+        List<ItemList> nwItemList = new List<ItemList>();
+        List<string> nwSMList = new List<string>();
+        List<string> nwTagList = new List<string>();
+        dataManager.DeserializeData(dataFilePath, nwItemList, nwSMList, nwTagList);
         debug.text = "deserialized";
-        foreach (ItemList i in nwList)
+        
+        foreach (string s in nwSMList)
         {
-            AddItem(i.priority, i.productName);
+            AddSupermarket(s);
         }
-        debug.text = nwList.Count.ToString();
+
+        foreach (ItemList i in nwItemList)
+        {
+            AddItem(i.priority, i.productName, i.supermarket, i.tag) ;
+            
+        }
+       
+        debug.text = nwItemList.Count.ToString();
     }
 
     public void ExportData()
     {
         debug.text = "try to export";
-        dataManager.SerializeItems(dataFilePath, itemsList);
-        debug.text = "exported";
-        
+        dataManager.SerializeData(dataFilePath, itemsList,SMList, TagsList);
+        debug.text = "exported";        
     }
 }

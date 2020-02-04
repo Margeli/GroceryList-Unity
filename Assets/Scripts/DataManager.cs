@@ -7,7 +7,7 @@ using System;
 public class DataManager : MonoBehaviour { 
 
     
-    public void SerializeItems(string filePath, List<ItemsListChunk.ItemList> listOfItems)
+    public void SerializeData(string filePath, List<ItemsListChunk.ItemList> listOfItems, List<string> listOfSM, List<string> TagListToFill)
     {
         File.Delete(filePath);
         StreamWriter writer = new StreamWriter(filePath);
@@ -19,11 +19,21 @@ public class DataManager : MonoBehaviour {
             writer.WriteLine(i.supermarket);
             writer.WriteLine(i.tag);
         }
+        writer.WriteLine(TagListToFill.Count);
+        foreach (string s in TagListToFill)
+        {
+            writer.WriteLine(s);
+        }
+        writer.WriteLine(listOfSM.Count);
+       foreach(string s in listOfSM)
+        {
+            writer.WriteLine(s);
+        }
 
         writer.Close();
     }
 
-    public void DeserializeItems(string filePath, List<ItemsListChunk.ItemList> listToFill)
+    public void DeserializeData(string filePath, List<ItemsListChunk.ItemList> itemListToFill, List<string> SMListToFill, List<string> TagListToFill)
     {
         
         if (!File.Exists(filePath))
@@ -38,15 +48,29 @@ public class DataManager : MonoBehaviour {
             {
                 ItemsListChunk.ItemList item = new ItemsListChunk.ItemList();
                 item.productName = reader.ReadLine();
-                string r = reader.ReadLine();
-                int i = int.Parse(r);
-                item.priority = (ItemsListChunk.ItemList.Priority)( i);
+                item.priority = (ItemsListChunk.ItemList.Priority)(int.Parse(reader.ReadLine()));
                 item.supermarket = reader.ReadLine();
                 item.tag = reader.ReadLine();
-                listToFill.Add(item);
-            }  
+                itemListToFill.Add(item);
+            }
+            if (!reader.EndOfStream)
+            {
+                int num2 = int.Parse(reader.ReadLine());
+                for (int i = 0; i < num2; i++)
+                {
+                    TagListToFill.Add(reader.ReadLine());
+                }
+            }
+            if (!reader.EndOfStream)
+            {
+                int num2 = int.Parse(reader.ReadLine());
+                for (int i = 0; i < num2; i++)
+                {
+                    SMListToFill.Add(reader.ReadLine());
+                }
+               
+            }
             reader.Close();
-
         }
     }
     public void ResetDataFile(string fileName)
