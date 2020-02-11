@@ -45,6 +45,7 @@ public class ItemsListChunk : MonoBehaviour
         public Priority priority;
         public string supermarket = "";
         public string tag = "";
+        public bool bought = false;
 
         public GameObject itemGO;
 
@@ -133,7 +134,7 @@ public class ItemsListChunk : MonoBehaviour
             }
         }
     }
-    void AddItem(ItemList.Priority priority, string product, string SM, string tag)
+    void AddItem(ItemList.Priority priority, string product, string SM, string tag, bool bought = false)
     {
         ItemList item = new ItemList() { productName = product };
         itemsList.Add(item);
@@ -170,12 +171,15 @@ public class ItemsListChunk : MonoBehaviour
         item.tag = tag;
         AddTag(tag);
 
+        item.bought = bought;
+        itemGO.GetComponent<itemListScript>().setItemBought(bought);
 
         //Product Name
         Text text = itemGO.transform.Find("Product_Txt").GetComponent<Text>();
         text.text = item.productName;
 
-        UpdateItemsPosition();
+
+        OrderByBought();
     }
     void UpdateItemsPosition()
     {
@@ -223,14 +227,19 @@ public class ItemsListChunk : MonoBehaviour
     public void OrderByPriority()
     {
         List<ItemList> aux = new List<ItemList>();
-        int enumCount = System.Enum.GetValues(typeof(ItemList.Priority)).Length;
-        for(int j = enumCount-1; j>=0; j--)
+        bool auxBool = true;
+        for (int num = 0; num < 2; num++)
         {
-            foreach (ItemList i in itemsList)
+            auxBool = !auxBool;
+            int enumCount = System.Enum.GetValues(typeof(ItemList.Priority)).Length;
+            for (int j = enumCount - 1; j >= 0; j--)
             {
-                if (i.priority == (ItemList.Priority)j)
+                foreach (ItemList i in itemsList)
                 {
-                    aux.Add(i);
+                    if (i.bought == auxBool && i.priority == (ItemList.Priority)j) 
+                    {
+                        aux.Add(i);
+                    }
                 }
             }
         }
@@ -242,13 +251,18 @@ public class ItemsListChunk : MonoBehaviour
     public void OrderByTag()
     {
         List<ItemList> aux = new List<ItemList>();
-        foreach (string s in TagsList)
+        bool auxBool = true;
+        for (int num = 0; num < 2; num++)
         {
-            foreach(ItemList i in itemsList)
+            auxBool = !auxBool;
+            foreach (string s in TagsList)
             {
-                if(i.tag == s)
+                foreach (ItemList i in itemsList)
                 {
-                    aux.Add(i);
+                    if (i.bought == auxBool && i.tag == s)
+                    {
+                        aux.Add(i);
+                    }
                 }
             }
         }
@@ -260,13 +274,18 @@ public class ItemsListChunk : MonoBehaviour
     public void OrderBySM()
     {
         List<ItemList> aux = new List<ItemList>();
-        foreach (string s in SMList)
+        bool auxBool = true;
+        for (int num = 0; num < 2; num++)
         {
-            foreach (ItemList i in itemsList)
+            auxBool = !auxBool;
+            foreach (string s in SMList)
             {
-                if (i.supermarket == s)
+                foreach (ItemList i in itemsList)
                 {
-                    aux.Add(i);
+                    if (i.bought == auxBool && i.supermarket == s)
+                    {
+                        aux.Add(i);
+                    }
                 }
             }
         }
@@ -274,6 +293,40 @@ public class ItemsListChunk : MonoBehaviour
         order = OrderBy.SM;
         UpdateItemsPosition();
     }
+    private void OrderByBought()
+    {
+        List<ItemList> aux = new List<ItemList>();
+        bool auxBool = true;
+        for (int num = 0; num < 2; num++)
+        {
+            auxBool = !auxBool;
+            foreach (ItemList i in itemsList)
+            {
+                if (i.bought == auxBool )
+                {
+                    aux.Add(i);
+                }
+            }
+        }
+        itemsList = aux;
+        UpdateItemsPosition();
+    }
+    //-------------------------BOUGHT
+
+    public void SetItemBought(GameObject GO, bool bought)
+    {
+        foreach(ItemList i in itemsList)
+        {
+            if(i.itemGO == GO)
+            {
+                i.bought = bought;
+                OrderByBought();
+                ExportData();
+                return;
+            }
+        }
+    }
+
 
     //-------------------------SUPERMARKET DROPDOWN
 
@@ -331,7 +384,7 @@ public class ItemsListChunk : MonoBehaviour
 
         foreach (ItemList i in nwItemList)
         {
-            AddItem(i.priority, i.productName, i.supermarket, i.tag) ;
+            AddItem(i.priority, i.productName, i.supermarket, i.tag, i.bought) ;
             
         }
        

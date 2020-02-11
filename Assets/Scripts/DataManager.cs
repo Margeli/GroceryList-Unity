@@ -18,6 +18,7 @@ public class DataManager : MonoBehaviour {
             writer.WriteLine((int)i.priority);
             writer.WriteLine(i.supermarket);
             writer.WriteLine(i.tag);
+            writer.WriteLine(i.bought);
         }
         writer.WriteLine(TagListToFill.Count);
         foreach (string s in TagListToFill)
@@ -43,6 +44,7 @@ public class DataManager : MonoBehaviour {
         else
         {
             StreamReader reader = new StreamReader(filePath);
+            
             int num = int.Parse(reader.ReadLine());
             for (int j = 0; j < num; j++)
             {
@@ -51,6 +53,8 @@ public class DataManager : MonoBehaviour {
                 item.priority = (ItemsListChunk.ItemList.Priority)(int.Parse(reader.ReadLine()));
                 item.supermarket = reader.ReadLine();
                 item.tag = reader.ReadLine();
+                string s = reader.ReadLine();
+                item.bought = s=="True";
                 itemListToFill.Add(item);
             }
             if (!reader.EndOfStream)
