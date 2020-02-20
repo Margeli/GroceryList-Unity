@@ -7,6 +7,7 @@ public class ItemsListChunk : MonoBehaviour
 {
     public GameObject listContent;
     public GameObject itemsListPrefab;
+    public GameObject itemsListSeparatorPrefab;
     public PriorityButtons priorityButtons;
     public DataManager dataManager;
     public Dropdown SMDropdown;
@@ -14,6 +15,8 @@ public class ItemsListChunk : MonoBehaviour
     public float separation = 20.0f;
 
     List<ItemList> itemsList;
+    public List<string> defSMList = new List<string>(){ "Tesco", "Aldi", "Asda", "Sainsbury" };
+    public List<string> defTagList = new List<string>() { "Vegetables", "Fruit", "Fish", "Meat", "Lactic", "Various"};
     List<string> SMList;
     List<string> TagsList;
 
@@ -113,12 +116,14 @@ public class ItemsListChunk : MonoBehaviour
 
         InputField i = SMDropdown.transform.Find("AddSM_Panel").Find("SM_Input").GetComponent<InputField>();
         AddSupermarket(i.text);
+        i.text = "";
     }
 
     public void ButtonAddTagPressed()
     {
         InputField i = TagDropdown.transform.Find("AddTag_Panel").Find("Tag_Input").GetComponent<InputField>();
         AddTag(i.text);
+        i.text = "";
     }
     //-----------------------------ITEMS LIST MANAGEMENT
     public void RemoveItem(GameObject goItem)
@@ -190,7 +195,7 @@ public class ItemsListChunk : MonoBehaviour
 
             RectTransform viewportRect = listContent.transform.parent.transform.GetComponent<RectTransform>();
 
-            Vector3 newPos = new Vector3(listContent.transform.position.x + viewportRect.rect.size.x * 0.1f,
+            Vector3 newPos = new Vector3(listContent.transform.position.x + viewportRect.rect.size.x * 0.1f,/*if changed, need to change OnPointerUp of itemListScript*/
            listContent.transform.position.y - viewportRect.rect.size.y * 0.12f - separation - itemBG_rect.rect.height * 2.0f * c, // initial pos - margin - separation - height of the prefab * nº prefabs
            0);
 
@@ -213,12 +218,14 @@ public class ItemsListChunk : MonoBehaviour
         SMList.Clear();
         SMDropdown.ClearOptions();
         AddSupermarket("");
+        AddSupermarket(defSMList);
     }
     void ClearTagList()
     {
         TagsList.Clear();
         TagDropdown.ClearOptions();
         AddTag("");
+        AddTag(defTagList);
     }
     
 
@@ -345,6 +352,15 @@ public class ItemsListChunk : MonoBehaviour
         l.Add(name);
         SMDropdown.AddOptions(l);
     }
+
+    void AddSupermarket(List<string> namesWOchecking)
+    {
+        foreach(string s in namesWOchecking)
+        {
+            SMList.Add(s);
+        }
+        SMDropdown.AddOptions(namesWOchecking);
+    }
     //-----------------------------TAG
 
     void AddTag(string tag)
@@ -361,6 +377,14 @@ public class ItemsListChunk : MonoBehaviour
         List<string> l = new List<string>();
         l.Add(tag);
         TagDropdown.AddOptions(l);
+    }
+    void AddTag(List<string> tags)
+    {
+        foreach (string s in tags)
+        {
+            TagsList.Add(s);
+        }
+        TagDropdown.AddOptions(tags);
     }
     //-------------------------------DATA MANAGEMENT
     public void ImportData()

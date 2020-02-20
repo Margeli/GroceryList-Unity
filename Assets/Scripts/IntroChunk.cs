@@ -1,20 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+
 public class IntroChunk : MonoBehaviour
 {
-    public string versionTxt = "Version: ";
-    public float version = 0.0f;
-    // Start is called before the first frame update
-    void Start()
+    Animation anim;
+    public GameObject mainMenuChunk;
+    private void Start()
     {
-        transform.Find("Version_Txt").GetComponent<Text>().text = versionTxt + version.ToString();
+        anim = GetComponent<Animation>();
+       
     }
-
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        if (!anim.isPlaying)
+        {
+            gameObject.SetActive(false);
+            mainMenuChunk.SetActive(true);
+        }
     }
 }
