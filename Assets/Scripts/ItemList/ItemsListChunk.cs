@@ -12,6 +12,7 @@ public class ItemsListChunk : MonoBehaviour
     public DataManager dataManager;
     public Dropdown SMDropdown;
     public Dropdown TagDropdown;
+    public float initialSeparationY = 100.0f;
     public float separation = 20.0f;
 
     List<ItemList> itemsList;
@@ -83,7 +84,7 @@ public class ItemsListChunk : MonoBehaviour
     {
         if (Time.time > 0.01f && needToImport) // in start the content is not well placed.
         {
-            ImportData();
+            ImportData(null, null);
             UpdateItemsPosition();
             needToImport = false;
         }
@@ -100,15 +101,27 @@ public class ItemsListChunk : MonoBehaviour
         
     }
 
-    public void ButtonClearPressed()
+    public void ButtonClearPressed(bool clearAll)
     {
-        ClearItemList();
-        ClearSMList();
-        ClearTagList();
-        
+
         dataManager.ResetDataFile(dataFilePath);
+
+        ClearItemList();
+
+        if (clearAll)
+        {
+            // TODO put dropdown index to 0 to avoid out of range
+            ClearSMList();
+            ClearTagList();
+            ImportData(null, null);
+        }
+        else
+        {
+            ImportData(TagsList, SMList);
+        }
+
+        ExportData();
         UpdateItemsPosition();
-        ImportData();
     }
 
     public void ButtonAddSMPressed()
@@ -195,8 +208,8 @@ public class ItemsListChunk : MonoBehaviour
 
             RectTransform viewportRect = listContent.transform.parent.transform.GetComponent<RectTransform>();
 
-            Vector3 newPos = new Vector3(listContent.transform.position.x + viewportRect.rect.size.x * 0.1f,/*if changed, need to change OnPointerUp of itemListScript*/
-           listContent.transform.position.y - viewportRect.rect.size.y * 0.12f - separation - itemBG_rect.rect.height * 2.0f * c, // initial pos - margin - separation - height of the prefab * nº prefabs
+            Vector3 newPos = new Vector3(listContent.transform.position.x + viewportRect.rect.size.x *0.05f,/*if changed, need to change OnPointerUp of itemListScript*/
+           listContent.transform.position.y - initialSeparationY  -(separation + itemBG_rect.rect.height ) * c, // initial pos - margin - separation - height of the prefab * nº prefabs
            0);
 
             i.itemGO.transform.position = newPos;
@@ -204,6 +217,8 @@ public class ItemsListChunk : MonoBehaviour
             c++;
         }
     }
+
+    
     //-------------CLEAR
     void ClearItemList()
     {
@@ -369,7 +384,7 @@ public class ItemsListChunk : MonoBehaviour
         {
             if (tag == s)//name already exist
             {
-                debug.text = "tag already exists";
+                debug.text = "tag already exists"; ///
                 return;
             }
         }
@@ -387,23 +402,32 @@ public class ItemsListChunk : MonoBehaviour
         TagDropdown.AddOptions(tags);
     }
     //-------------------------------DATA MANAGEMENT
-    public void ImportData()
+    public void ImportData(List<string> preservedTags, List<string> preservedSM )
     {
         ClearItemList(); 
-        ClearSMList();
-        ClearTagList();
+        
+        if (preservedTags == null)
+            ClearTagList();
 
-        debug.text = "tryToImport";
+        if (preservedSM==null)
+            ClearSMList();
+        
+        debug.text = "tryToImport"; ///
 
         List<ItemList> nwItemList = new List<ItemList>();
         List<string> nwSMList = new List<string>();
         List<string> nwTagList = new List<string>();
         dataManager.DeserializeData(dataFilePath, nwItemList, nwSMList, nwTagList);
-        debug.text = "deserialized";
+
+        debug.text = "deserialized"; ///
         
         foreach (string s in nwSMList)
         {
             AddSupermarket(s);
+        }
+        foreach (string s in nwTagList)
+        {
+            AddTag(s);
         }
 
         foreach (ItemList i in nwItemList)
@@ -411,14 +435,29 @@ public class ItemsListChunk : MonoBehaviour
             AddItem(i.priority, i.productName, i.supermarket, i.tag, i.bought) ;
             
         }
-       
-        debug.text = nwItemList.Count.ToString();
+       //if preserved SM & Tags
+        if(preservedSM !=null)
+        {
+            foreach (string s in preservedSM)
+            {
+                AddSupermarket(s);
+            }
+        }
+        if (preservedTags != null)
+        {
+            foreach (string s in preservedTags)
+            {
+                AddTag(s);
+            }
+        }
+
+        debug.text = nwItemList.Count.ToString();///
     }
 
     public void ExportData()
     {
-        debug.text = "try to export";
+        debug.text = "try to export"; ///
         dataManager.SerializeData(dataFilePath, itemsList,SMList, TagsList);
-        debug.text = "exported";        
+        debug.text = "exported";      ///  
     }
 }

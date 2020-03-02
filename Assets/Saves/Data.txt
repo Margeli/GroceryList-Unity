@@ -1,15 +1,45 @@
-2
-asd
+8
+
 0
 
 
 False
-awd
+
 0
 
 
-True
-7
+False
+
+0
+
+
+False
+
+0
+
+
+False
+
+0
+
+
+False
+
+0
+
+
+False
+
+0
+
+
+False
+
+0
+
+
+False
+8
 
 Vegetables
 Fruit
@@ -17,6 +47,7 @@ Fish
 Meat
 Lactic
 Various
+asd
 5
 
 Tesco
