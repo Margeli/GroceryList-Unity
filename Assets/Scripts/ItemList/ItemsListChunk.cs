@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class ItemsListChunk : MonoBehaviour
 {
+    public GameObject mainMenuChunk;
     public GameObject listContent;
     public GameObject itemsListPrefab;
     public GameObject itemsListSeparatorPrefab;
@@ -88,8 +89,16 @@ public class ItemsListChunk : MonoBehaviour
             UpdateItemsPosition();
             needToImport = false;
         }
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            if (Input.GetKey(KeyCode.Escape))
+            {
+                gameObject.SetActive(false);
+                mainMenuChunk.SetActive(true);
+                return;
+            }
+        }
     }
-
     //------------------------------UI
     public void ButtonAddPressed()
     {
@@ -206,14 +215,14 @@ public class ItemsListChunk : MonoBehaviour
         {
             RectTransform itemBG_rect = i.itemGO.transform.GetComponent<RectTransform>();
 
-            RectTransform viewportRect = listContent.transform.parent.transform.GetComponent<RectTransform>();
+            //RectTransform viewportRect = listContent.transform.parent.transform.GetComponent<RectTransform>();
 
-            Vector3 newPos = new Vector3(listContent.transform.position.x + viewportRect.rect.size.x *0.05f,/*if changed, need to change OnPointerUp of itemListScript*/
-           listContent.transform.position.y - initialSeparationY  -(separation + itemBG_rect.rect.height ) * c, // initial pos - margin - separation - height of the prefab * nº prefabs
+            Vector3 newPos = new Vector3(listContent.transform.position.x + listContent.GetComponent<RectTransform>().rect.size.x * 0.05f,/*if changed, need to change OnPointerUp of itemListScript*/
+           listContent.transform.position.y - initialSeparationY - (separation + itemBG_rect.rect.height*2.0f ) * c, // initial pos - margin - separation - height of the prefab * nº prefabs
            0);
 
             i.itemGO.transform.position = newPos;
-            itemBG_rect.sizeDelta = new Vector2(viewportRect.rect.size.x * 0.9f, itemBG_rect.sizeDelta.y);
+            itemBG_rect.sizeDelta = new Vector2(listContent.GetComponent<RectTransform>().rect.size.x * 0.9f, itemBG_rect.sizeDelta.y);
             c++;
         }
     }

@@ -81,7 +81,7 @@ public class itemListScript : MonoBehaviour, IDragHandler, IPointerDownHandler, 
     public void OnPointerUp(PointerEventData eventData)
     {
         currPressCoords = initPressCoords = Vector2.zero;
-        transform.position = new Vector3(contentRect.position.x + contentRect.rect.size.x * 0.1f, /*if changed, need to change UpdateItemsPosition*/
+        transform.position = new Vector3(contentRect.position.x + contentRect.rect.size.x * 0.05f, /*if changed, need to change UpdateItemsPosition*/
             transform.position.y , transform.position.z);
         dragged = false;
     }
